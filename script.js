@@ -1,9 +1,9 @@
-const main = document.querySelector('');
+const main = document.querySelector('main');
 const voicesSelect = document.getElementById('voices');
-const textarea = document.getElementById('');
-const readBtn = document.getElementById('');
-const toggleBtn = document.getElementById('');
-const closeBtn = document.getElementById('');
+const textarea = document.getElementById('text');
+const readBtn = document.getElementById('read');
+const toggleBtn = document.getElementById('toggle');
+const closeBtn = document.getElementById('close');
 
 const data = [
   {
@@ -56,24 +56,71 @@ const data = [
   }
 ];
 
+const message = new SpeechSynthesisUtterance();
+let voices = [];
+
 data.forEach(createBox);
 
 function createBox(item) {
+  const box = document.createElement('div');
 
+  const { image, text } = item;
+
+  box.classList.add('box');
+
+  box.innerHTML = `
+    <img src='${image}' alt='${text}'>
+    <p class='info'>${text}</p>
+  `;
+
+  box.addEventListener('click', () => {
+    setTextMessage(text);
+    speakText();
+
+    box.classList.add('active');
+    setTimeout(() => {
+      box.classList.remove('active');
+    }, 800);
+  });
+
+  main.append(box);
 }
 
 function getVoices() {
+  voices = speechSynthesis.getVoices();
 
+  voices.forEach(({ name, lang }) => {
+    const option = document.createElement('option');
+
+    option.value = name;
+    option.innerText = `${name} ${lang}`;
+
+    option.addEventListener('click', setVoice);
+
+    voicesSelect.append(option);
+  })
 }
+getVoices();
+
+speechSynthesis.addEventListener('voiceschanged', getVoices);
 
 function setTextMessage(text) {
-
+  message.text = text;
 }
 
 function speakText() {
-
+  speechSynthesis.speak(message);
 }
 
 function setVoice(e) {
-
+  message.voice = voices.find(voice => voice.name === e.target.value);
 }
+
+toggleBtn.addEventListener('click', () => {
+  document.getElementById('text-box').classList.toggle('show');
+})
+
+readBtn.addEventListener('click', () => {
+  setTextMessage(textarea.value);
+  speakText();
+})
